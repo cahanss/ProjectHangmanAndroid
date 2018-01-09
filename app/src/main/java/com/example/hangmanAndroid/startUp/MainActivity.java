@@ -13,72 +13,67 @@ import com.example.hangmanAndroid.R;
 import com.example.hangmanAndroid.net.ServerConnection;
 
 public class MainActivity extends AppCompatActivity {
-    Handler clientHandler;                                                      // Creates a Handler, used to post runnable from backround thread
-                                                                // on GUI thread (runOnUiThread)
-    TextView textView;                                                          // Creates a TextView which is displayed in the GUI
+    Handler clientHandler;
+    TextView textView;
     private ServerConnection serverConnection;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {                        // Overrides the onCreate which is run as the application is
-                                                                // created. Is starts all things in the background needed to start the app.
-        super.onCreate(savedInstanceState);                                     // runs the things in the generic onCreate, if not used onCreate
-                                                                // will not run. super runs a set of methods on create that we dont want to have
-                                                                // to worry about.
-        setContentView(R.layout.activity_main);                 // get from resources, activity_main som är appens utseende
+    protected void onCreate(Bundle savedInstanceState) {                        
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
     }
 
     @Override
-    protected void onStart() {                                                  // always called after onCreate Is whats run as the acctual
-                                                                                // "opening" of the app in the GUI happens.
+    protected void onStart() {
         super.onStart();
-        textView = (TextView) findViewById(R.id.textView);                      // sätt textView till resourcen textView
+        textView = (TextView) findViewById(R.id.textView);
         clientHandler = new Handler() {
             @Override
             public void handleMessage(final Message msg) {
-                runOnUiThread(new Runnable() {                                  // run on main thread a new Runnable
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Bundle b = msg.getData();
-                        String key = b.getString("KEY");                    // the string stored with the key "key"
-                        textView.setText(key);                                  // sets textVeiw to the text received.
+                        String key = b.getString("KEY");
+                        textView.setText(key);
                     }
                 });
             }
         };
-        new ConnectServer().execute();                                          // kör metoden doInBackground i ConnectServer
+        new ConnectServer().execute();
     }
 
-    public void sendMessage(View view){                                         // Is excecuted when you push button.
-        EditText editText = (EditText) findViewById(R.id.instruction);          // sets sets editText to the contents of what player has written
-        String message = editText.getText().toString();                         // gets message from editText
-        editText.setText(null);                                                 // sets it to null
-        new SendToServer().execute(message);                                    // calls SendToServer to bbe excecuted with the new msg
+    public void sendMessage(View view){
+        EditText editText = (EditText) findViewById(R.id.instruction);
+        String message = editText.getText().toString();
+        editText.setText(null);
+        new SendToServer().execute(message);
     }
 
-    private class ConnectServer extends AsyncTask<Void, Void, ServerConnection> { //first param = in-param, mitten param = progress status
-                                                                            // last param = return-param
+    private class ConnectServer extends AsyncTask<Void, Void, ServerConnection> {
+
         @Override
-        protected ServerConnection doInBackground(Void...voids ) {                // doInBackground kallas på när excecute körs. void är den första paramen
-                                                                                  // från AsyncTask.
+        protected ServerConnection doInBackground(Void...voids ) {
+
             ServerConnection serverConnection = new ServerConnection();
             serverConnection.connect();
             serverConnection.createListener(clientHandler);
-            return serverConnection;                                              // returns serverConnection to next step in async task which is onPostExcecute
+            return serverConnection;
         }
 
 
 
         @Override
-        protected void onPostExecute(ServerConnection serverConnection){           //is called after the connectServer is run.
+        protected void onPostExecute(ServerConnection serverConnection){
             MainActivity.this.serverConnection = serverConnection;
         }
     }
 
-    private class SendToServer extends AsyncTask<String, Void, Void> {              //AsyncTask first param is in-param
+    private class SendToServer extends AsyncTask<String, Void, Void> {
         @Override
-        protected Void doInBackground(String... params) {                           // doInBackground kallas på när excecute körs. params är den tredje paramen
-            serverConnection.send(params[0]);                                       // calls send with the msg to be printed
+        protected Void doInBackground(String... params) {
+            serverConnection.send(params[0]);
             return null;
         }
     }
