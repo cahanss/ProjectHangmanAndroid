@@ -31,7 +31,6 @@ import java.util.logging.Logger;
         private DataOutputStream toServer;
         private DataInputStream fromServer;
         private boolean connected;
-        private Handler outputHandler;
 
         public void connect() {
             try {
@@ -66,10 +65,10 @@ import java.util.logging.Logger;
 
         private class Listener implements Runnable {
 
-            private final Handler out;
+            private final Handler toClient;
 
-            private Listener(Handler out) {
-                this.out = out;
+            private Listener(Handler toClient) {
+                this.toClient = toClient;
             }
 
             @Override
@@ -81,7 +80,7 @@ import java.util.logging.Logger;
                         Message message = new Message();
                         b.putString("KEY", msgFromServer);
                         message.setData(b);
-                        out.handleMessage(message);
+                        toClient.handleMessage(message);
                     }
                 } catch (IOException ex) {
                     if (connected) {
@@ -89,7 +88,7 @@ import java.util.logging.Logger;
                         Message message = new Message();
                         b.putString("KEY", "Connection lost");
                         message.setData(b);
-                        out.handleMessage(message);
+                        toClient.handleMessage(message);
                     }
                 }
             }
